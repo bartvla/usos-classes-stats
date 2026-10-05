@@ -1,13 +1,29 @@
-import os
+from plan import wczytaj, w_zakresie, w_dniu, godziny_per_przedmiot, postep_per_przedmiot, TZ
+from datetime import datetime, timedelta
 
-import requests
-from dotenv import load_dotenv
+if __name__ == "__main__":
+    zajecia = wczytaj()
+    dzis = datetime.now(TZ).date()
 
-load_dotenv()
+    print(f"Wczytano {len(zajecia)} zajęć: "
+          f"{zajecia[0].start:%d.%m.%Y} - {zajecia[-1].start:%d.%m.%Y}\n")
 
-url = os.environ["URL"]
+    print(f"--- Dziś ({dzis:%d.%m}) ---")
+    for z in w_dniu(zajecia, dzis):
+        print(" ", z)
 
-response = requests.get(url)
+    poniedzialek = dzis - timedelta(days=dzis.weekday())
+    print(f"\n\n--- Tydzień {poniedzialek:%d.%m} - {poniedzialek + timedelta(days=6):%d.%m} ---\n")
+    for z in w_zakresie(zajecia, poniedzialek, poniedzialek + timedelta(days=6)):
+        print(" ", z)
 
-with open("plan-zajec.ics", "wb") as f:
-    f.write(response.content)
+    print("\n--- Godziny per przedmiot ---")
+    godziny = godziny_per_przedmiot(zajecia)
+    for przedmiot, h in sorted(godziny.items(), key=lambda p: p[1], reverse=True):
+         print(f"  {h:6.1f} h  {przedmiot}")
+
+    print("\n--- Postęp per przedmiot ---")
+    teraz = datetime.now(TZ)
+    postepy = postep_per_przedmiot(zajecia, teraz)
+    for przedmiot, postep in sorted(postepy.items(), key=lambda p: p[1].procent, reverse=True):
+        print(f"    {postep.procent:.1f}% : {przedmiot}")

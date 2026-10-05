@@ -1,5 +1,3 @@
-"""Wczytywanie planu zajęć z pliku .ics do obiektów Pythona."""
-
 import re
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -110,52 +108,4 @@ def postep_per_przedmiot(zajecia: list[Zajecia], teraz: datetime) -> dict[str, P
             entry.pozostale += godziny
             wynik[z.przedmiot] = entry
     return wynik
-            
-        
 
-if __name__ == "__main__":
-    zajecia = wczytaj()
-    dzis = datetime.now(TZ).date()
-
-    print(f"Wczytano {len(zajecia)} zajęć: "
-          f"{zajecia[0].start:%d.%m.%Y} - {zajecia[-1].start:%d.%m.%Y}\n")
-
-    print(f"--- Dziś ({dzis:%d.%m}) ---")
-    for z in w_dniu(zajecia, dzis):
-        print(" ", z)
-
-    poniedzialek = dzis - timedelta(days=dzis.weekday())
-    print(f"\n\n--- Tydzień {poniedzialek:%d.%m} - {poniedzialek + timedelta(days=6):%d.%m} ---\n")
-    for z in w_zakresie(zajecia, poniedzialek, poniedzialek + timedelta(days=6)):
-        print(" ", z)
-
-    print("\n--- Godziny per przedmiot ---")
-    godziny = godziny_per_przedmiot(zajecia)
-    for przedmiot, h in sorted(godziny.items(), key=lambda p: p[1], reverse=True):
-         print(f"  {h:6.1f} h  {przedmiot}")
-
-    print("\n--- Postęp per przedmiot ---")
-    teraz = datetime.now(TZ)
-    postepy = postep_per_przedmiot(zajecia, teraz)
-    for przedmiot, postep in sorted(postepy.items(), key=lambda p: p[1].procent, reverse=True):
-        print(f"    {postep.procent:.1f}% : {przedmiot}")
-        
-
-
-    
-    # teraz = datetime.now(TZ)
-    # odbyte: dict[str, float] = {}
-    # pozostale: dict[str, float] = {}
-    # for z in zajecia:
-    #     target = odbyte if z.koniec <= teraz else pozostale
-    #     godziny = z.czas_trwania.total_seconds() / 3600
-    #     target[z.przedmiot] = target.get(z.przedmiot, 0) + godziny
-    # print("\n--- Godziny per przedmiot (odbyte) ---")
-    # for przedmiot in odbyte.keys() | pozostale.keys():
-    #     h = odbyte.get(przedmiot, 0)
-    #     print(f"  {h:6.1f} h  {przedmiot}")
-    
-    # print("\n--- Godziny per przedmiot (pozostałe) ---")
-    # for przedmiot in odbyte.keys() | pozostale.keys():
-    #     h = pozostale.get(przedmiot, 0)
-    #     print(f"  {h:6.1f} h  {przedmiot}")
